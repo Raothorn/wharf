@@ -1,0 +1,68 @@
+from flask import Blueprint, abort, request
+from sqlalchemy.exc import IntegrityError
+
+from .extensions import db
+from .models import Environment
+
+api = Blueprint("api", __name__)
+
+def read_data():
+    data = request.get_json()
+
+    if not isinstance(data, dict):
+        abort(400, description="Expected a JSON object")
+
+    return data
+
+def save_changes():
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        abort(409, description="An environment with that name already exists")
+
+
+@api.post("/environments")
+def create_environment():
+    data = read_data()
+    
+    environment = Environment(**data)
+    db.session.add(environment)
+
+    save_changes()
+
+    return environment.to_dict(), 201
+
+
+@api.get("/environments")
+def list_environments():
+    environments = db.session.scalars(
+        db.select(Environment).order_by(Environment.id)
+    ).all()
+
+    return [environment.to_dict() for environment in environments]
+
+
+@api.get("/environments/<int:environment_id>")
+def get_environment(environment_id: int):
+    return db.get_or_404(Environment, environment_id).to_dict()
+
+
+@api.patch("/environments/<int:environment_id>")
+def update_environment(environment_id: int):
+    environment = db.get_or_404(Environment, environment_id)
+
+    for field, value in read_data().items():
+        setattr(environment, field, value)
+
+    save_changes()
+    return environment.to_dict()
+
+
+@api.delete("/environments/<int:environment_id>")
+def delete_environment(environment_id: int):
+    environment = db.get_or_404(Environment, environment_id)
+    db.session.delete(environment)
+    db.session.commit()
+
+    return "", 204
