@@ -1,1 +1,4 @@
 .venv/
+migrations/
+.old_migrations/
+app/__pycache__/
