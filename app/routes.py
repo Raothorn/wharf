@@ -3,6 +3,7 @@ from sqlalchemy.exc import IntegrityError
 
 from .extensions import db
 from .models import Environment
+import jinja2
 
 api = Blueprint("api", __name__)
 
@@ -47,6 +48,15 @@ def list_environments():
 def get_environment(environment_id: int):
     return db.get_or_404(Environment, environment_id).to_dict()
 
+@api.get("/environments/cluster/<int:environment_id>")
+def generate_cluster_yml(environment_id: int):
+    env = db.get_or_404(Environment, environment_id).to_dict()
+
+    jinja = jinja2.Environment(loader=jinja2.FileSystemLoader("templates/"))
+    template = jinja.get_template("cluster.yml")
+
+    rendered = template.render(model = env)
+    return rendered
 
 @api.patch("/environments/<int:environment_id>")
 def update_environment(environment_id: int):

@@ -2,50 +2,46 @@ from sqlalchemy import inspect
 
 from .extensions import db
 
+import sqlalchemy as sq
+from sqlalchemy.orm import Mapped, mapped_column
 
 class Environment(db.Model):
     __tablename__ = "environments"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = mapped_column(sq.Integer, primary_key=True)
 
-    site_code = db.Column(db.String(3))
-    classification_code = db.Column(db.String(3))
+    site_code = mapped_column(sq.String(3))
+    classification_code = mapped_column(sq.String(3))
 
-    # private
-    custom_name = db.Column(db.String(255))
-    custom_harbor_url = db.Column(db.String(255))
+    # Global values
+    ca_crt = mapped_column(sq.Text())
+    ntp_server = mapped_column(sq.String(255))
 
-    ca_crt = db.Column(db.Text())
+
+    # K8s values
     
-    k8s_namespace = db.Column(
-        db.String(100),
-        default="ges-namespace",
-        server_default="ges-namespace",
-    )
-    
-    k8s_cluster = db.Column(
-        db.String(100),
-        default="ges-cluster",
-        server_default="ges-cluster",
-    )
+    k8s_namespace = mapped_column(sq.String(100), default="ges-namespace")
+    k8s_cluster = mapped_column(sq.String(100), default="ges-cluster" )
+    k8s_pod_cidr = mapped_column(sq.String(255), default="172.69.0.0/16")
+    k8s_service_cidr = mapped_column(sq.String(255), default="172.169.0.0/16")
+    k8s_vkr_version = mapped_column(sq.String(255), default="1.32.0")
+    k8s_storage_class = mapped_column(sq.String(255), default="vsan_default_storage_class")
+
+    # Control Plane
+    k8s_cp_nodes = mapped_column(sq.Integer, default=3)
+    k8s_cp_vm_class = mapped_column(sq.String(255), default="guaranteed-large")
+
+    # Workers
+    k8s_worker_nodes = mapped_column(sq.Integer, default=3)
+    k8s_worker_vm_class = mapped_column(sq.String(255), default="guaranteed-large")
 
     @property 
     def name(self):
-        if self.custom_name:
-            return self.custom_name
-        elif self.site_code and self.classification_code:
-            return f"{self.site_code}-{self.classification_code}"
-        else:
-            return None
+        return f"{self.site_code}-{self.classification_code}"
 
     @property
     def harbor_url(self):
-        if self.custom_harbor_url:
-            return self.custom_harbor_url
-        elif self.site_code:
-            return f"harbor.bigsafari.{self.site_code}.usaf"
-        else:
-            return None
+        return f"harbor.bigsafari.{self.site_code}.usaf"
 
     def to_dict(self):
         data = {
@@ -54,6 +50,6 @@ class Environment(db.Model):
         }
 
         data["name"] = self.name
+        data["harbor_url"] = self.harbor_url
 
         return data
-
