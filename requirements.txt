@@ -4,3 +4,4 @@ psycopg[binary]
 Flask-Migrate
 flask-cors
 jinja2
+kubernetes

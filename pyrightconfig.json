@@ -26,6 +26,7 @@
   "reportUnannotatedClassAttribute": false,
   "reportUnknownMemberType": false,
   "reportUnknownArgumentType": false,
+  "reportUnknownVariableType": false,
   "reportOptionalMemberAccess": false,
   "reportAny": false,
 

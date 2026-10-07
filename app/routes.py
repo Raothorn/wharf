@@ -1,11 +1,14 @@
+import json
 from flask import Blueprint, abort, request
 from sqlalchemy.exc import IntegrityError
 
+from .cluster_access import NoContextException, get_client, cluster_health
 from .extensions import db
 from .models import Environment
 import jinja2
 
 api = Blueprint("api", __name__)
+
 
 def read_data():
     data = request.get_json()
@@ -15,6 +18,7 @@ def read_data():
 
     return data
 
+
 def save_changes():
     try:
         db.session.commit()
@@ -23,10 +27,27 @@ def save_changes():
         abort(409, description="An environment with that name already exists")
 
 
+############
+# Clusters #
+############
+@api.get("/clusters/<string:cluster_ctx>/health")
+def get_cluster_health(cluster_ctx: str):
+    try: 
+        client = get_client(cluster_ctx)
+        health = cluster_health(client)
+        return health
+    except NoContextException as err:
+        return { "healthy": False, "details": str(err)}
+
+############
+# Database #
+############
+
+
 @api.post("/environments")
 def create_environment():
     data = read_data()
-    
+
     environment = Environment(**data)
     db.session.add(environment)
 
@@ -48,6 +69,7 @@ def list_environments():
 def get_environment(environment_id: int):
     return db.get_or_404(Environment, environment_id).to_dict()
 
+
 @api.get("/environments/cluster/<int:environment_id>")
 def generate_cluster_yml(environment_id: int):
     env = db.get_or_404(Environment, environment_id).to_dict()
@@ -55,8 +77,9 @@ def generate_cluster_yml(environment_id: int):
     jinja = jinja2.Environment(loader=jinja2.FileSystemLoader("templates/"))
     template = jinja.get_template("cluster.yml")
 
-    rendered = template.render(model = env)
+    rendered = template.render(model=env)
     return rendered
+
 
 @api.patch("/environments/<int:environment_id>")
 def update_environment(environment_id: int):
