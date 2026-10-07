@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Wharf.Api.Tests/Wharf.Api.Tests.csproj" />
+  <Project Path="Wharf.Api/Wharf.Api.csproj" />
+</Solution>
