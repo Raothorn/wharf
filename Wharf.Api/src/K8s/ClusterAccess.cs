@@ -11,7 +11,7 @@ public interface IClusterAccess
 
 public sealed class ClusterAccess : IClusterAccess
 {
-    public Kubernetes GetClient(string context)
+    private Kubernetes GetClient(string context)
     {
         var kubeconfigPath = System.Environment.GetEnvironmentVariable("KUBECONFIG")
             ?? KubernetesClientConfiguration.KubeConfigDefaultLocation;

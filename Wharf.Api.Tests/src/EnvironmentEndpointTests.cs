@@ -20,30 +20,33 @@ public class EnvironmentEndpointTests : IClassFixture<WharfWebApplicationFactory
     [Fact]
     public async Task GetEnvironmentReturnsEnvironment()
     {
-        // var response = await _client.GetAsync(
-        //     "/environments/test-env"
-        // );
-        //
-        // Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        //
-        // var environment = await response.Content.ReadFromJsonAsync<DeployEnvironment>();
-        //
-        // Assert.NotNull(environment);
-        // Assert.Equal("test-env", environment.Name);
+        var env = new DeployEnvironment() { Name = "test-env" };
+        await AddEnvironmentAsync(env);
+
+        var response = await _client.GetAsync("/environments/test-env");
+        
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var responseEnv = await response.Content.ReadFromJsonAsync<DeployEnvironment>();
+        
+        Assert.NotNull(responseEnv);
+        Assert.Equal("test-env", responseEnv.Name);
+    }
+
+    [Fact]
+    public async Task GetEnvironmentReturnsErrorIfEnvironmentDoesNotExist() 
+    {
+        var response = await _client.GetAsync($"/environments/test-env");
+        
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]
     public async Task CreateEnvironmentReturnsCreated()
     {
-        // var request = new CreateCustomEnvironmentRequest()
-        // {
-        //     Name = "new-environment",
-        // };
-        //
-        // var response = await _client.PostAsJsonAsync(
-        //     "/environments",
-        //     request
-        // );
+        var request = new CreateCustomEnvironmentRequest() { Name = "new-environment" };
+
+        var response = await _client.PostAsJsonAsync("/environments", request);
 
         //Try to figure out what the internal server error was, if it happens
         // if (!response.IsSuccessStatusCode)
@@ -54,32 +57,33 @@ public class EnvironmentEndpointTests : IClassFixture<WharfWebApplicationFactory
 
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        var responseEnv = await response.Content.ReadFromJsonAsync<DeployEnvironment>();
+
+        Assert.NotNull(responseEnv);
+        Assert.Equal("new-environment", responseEnv.Name);
     }
 
     [Fact]
     public async Task CreateEnvironmentReturnsBadRequestForDuplicateName()
     {
-        // var request = new CreateGesEnvironmentRequest()
-        // {
-        //     SiteCode = "mob",
-        //     ClassificationCode = "unc"
-        // };
-        //
+        var  request = new CreateCustomEnvironmentRequest{ Name = "test-env" };
+
         // // First creation should succeed
-        // var firstResponse = await _client.PostAsJsonAsync(
-        //     "/environments",
-        //     request
-        // );
-        //
-        // Assert.Equal(HttpStatusCode.Created, firstResponse.StatusCode);
-        //
-        // // Second creation with the same name should fail
-        // var secondResponse = await _client.PostAsJsonAsync(
-        //     "/environments",
-        //     request
-        // );
-        //
-        // Assert.Equal(HttpStatusCode.BadRequest, secondResponse.StatusCode);
+        var firstResponse = await _client.PostAsJsonAsync(
+            "/environments",
+            request
+        );
+
+        Assert.Equal(HttpStatusCode.Created, firstResponse.StatusCode);
+
+        // Second creation with the same name should fail
+        var secondResponse = await _client.PostAsJsonAsync(
+            "/environments",
+            request
+        );
+        
+        Assert.Equal(HttpStatusCode.Conflict, secondResponse.StatusCode);
     }
 
     // Helpers

@@ -33,7 +33,7 @@ public class WharfWebApplicationFactory
             services.AddDbContext<WharfDbContext>(options =>
             {
                 options.UseInMemoryDatabase(
-                    $"WharfTests-{Guid.NewGuid()}"
+                    $"WharfTests"
                 );
             });
             
