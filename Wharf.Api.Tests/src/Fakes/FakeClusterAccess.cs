@@ -1,4 +1,4 @@
-using Wharf.Api.K8s;
+using Wharf.Api.Tasks;
 using Wharf.Api.Models;
 
 namespace Wharf.Api.Tests.Fakes;

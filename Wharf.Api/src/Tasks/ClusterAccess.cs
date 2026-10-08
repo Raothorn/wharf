@@ -1,7 +1,7 @@
 using k8s;
 using Wharf.Api.Models;
 
-namespace Wharf.Api.K8s;
+namespace Wharf.Api.Tasks;
 
 public interface IClusterAccess
 {

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Wharf.Api.Data;
-using Wharf.Api.K8s;
+using Wharf.Api.Tasks;
 using Wharf.Api.Tests.Fakes;
 
 namespace Wharf.Api.Tests;

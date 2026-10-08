@@ -2,7 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Wharf.Api.Data;
 using Wharf.Api.Endpoints;
-using Wharf.Api.K8s;
+using Wharf.Api.Tasks;
 
 var builder = WebApplication.CreateBuilder(args);
 
