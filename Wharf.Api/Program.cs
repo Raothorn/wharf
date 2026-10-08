@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-
 using Wharf.Api.Data;
 using Wharf.Api.Endpoints;
 using Wharf.Api.K8s;
@@ -25,8 +24,9 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 builder.Services.AddScoped<IClusterAccess, ClusterAccess>();
 
-builder.Services.AddDbContext<WharfDbContext>(options => {
-        options.UseNpgsql(builder.Configuration.GetConnectionString("WharfDatabase"));
+builder.Services.AddDbContext<WharfDbContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("WharfDatabase"));
 });
 
 var app = builder.Build();
@@ -37,4 +37,9 @@ app.MapClusterEndpoints();
 app.UseCors("VueDev");
 app.Run();
 
-public partial class Program { }
+/// <summary>
+/// Exposes the application entry point for WebApplicationFactory integration tests.
+/// </summary>
+public partial class Program
+{
+}
