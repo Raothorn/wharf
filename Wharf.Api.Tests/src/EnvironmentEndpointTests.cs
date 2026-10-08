@@ -6,15 +6,11 @@ using Wharf.Api.Models;
 
 namespace Wharf.Api.Tests;
 
-public class EnvironmentEndpointTests : IClassFixture<WharfWebApplicationFactory>
+public class EnvironmentEndpointTests : ApiTestBase
 {
-    private readonly WharfWebApplicationFactory _factory;
-    private readonly HttpClient _client;
-
     public EnvironmentEndpointTests(WharfWebApplicationFactory factory)
+        : base(factory)
     {
-        _factory = factory;
-        _client = factory.CreateClient();
     }
 
     [Fact]

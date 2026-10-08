@@ -11,7 +11,20 @@ using Wharf.Api.K8s;
 public class WharfWebApplicationFactory
     : WebApplicationFactory<Program>
 {
+    // Keep the name stable across requests, but isolate parallel test classes.
+    private readonly string _databaseName = $"WharfTests-{Guid.NewGuid()}";
+
     public FakeClusterAccess ClusterAccess { get; } = new();
+
+    public async Task ResetAsync()
+    {
+        await using var scope = Services.CreateAsyncScope();
+        var database = scope.ServiceProvider.GetRequiredService<WharfDbContext>();
+
+        await database.Database.EnsureDeletedAsync();
+        await database.Database.EnsureCreatedAsync();
+        ClusterAccess.Healthy = false;
+    }
 
     protected override void ConfigureWebHost(
         IWebHostBuilder builder)
@@ -33,7 +46,7 @@ public class WharfWebApplicationFactory
             services.AddDbContext<WharfDbContext>(options =>
             {
                 options.UseInMemoryDatabase(
-                    $"WharfTests"
+                    _databaseName
                 );
             });
             
