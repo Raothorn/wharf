@@ -32,7 +32,7 @@ builder.Services.AddDbContext<WharfDbContext>(options =>
 var app = builder.Build();
 
 app.MapEnvironmentEndpoints();
-app.MapClusterEndpoints();
+app.MapSupervisorEndpoints();
 
 app.UseCors("VueDev");
 app.Run();

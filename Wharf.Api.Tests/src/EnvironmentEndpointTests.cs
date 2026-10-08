@@ -20,7 +20,7 @@ public class EnvironmentEndpointTests : ApiTestBase
     /// Verifies that a stored environment can be retrieved by name.
     /// </summary>
     [Fact]
-    public async Task GetEnvironmentReturnsEnvironmentAsync()
+    public async Task GetEnvironmentReturnsEnvironment()
     {
         var environment = new DeployEnvironment { Name = "test-env" };
         await AddEnvironmentAsync(environment);
@@ -39,7 +39,7 @@ public class EnvironmentEndpointTests : ApiTestBase
     /// Verifies that looking up an absent environment returns HTTP 404.
     /// </summary>
     [Fact]
-    public async Task GetEnvironmentReturnsNotFoundIfEnvironmentDoesNotExistAsync()
+    public async Task GetEnvironmentReturnsNotFoundIfEnvironmentDoesNotExist()
     {
         var response = await Client.GetAsync("/environments/test-env");
 
@@ -50,7 +50,7 @@ public class EnvironmentEndpointTests : ApiTestBase
     /// Verifies that creating an environment returns HTTP 201 and the saved values.
     /// </summary>
     [Fact]
-    public async Task CreateEnvironmentReturnsCreatedAsync()
+    public async Task CreateEnvironmentReturnsCreated()
     {
         var request = new CreateCustomEnvironmentRequest { Name = "new-environment" };
 
@@ -68,7 +68,7 @@ public class EnvironmentEndpointTests : ApiTestBase
     /// Verifies that a second creation with the same name returns HTTP 409.
     /// </summary>
     [Fact]
-    public async Task CreateEnvironmentReturnsConflictForDuplicateNameAsync()
+    public async Task CreateEnvironmentReturnsConflictForDuplicateName()
     {
         var request = new CreateCustomEnvironmentRequest { Name = "test-env" };
 

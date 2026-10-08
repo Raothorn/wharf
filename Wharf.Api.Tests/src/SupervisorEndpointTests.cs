@@ -4,12 +4,12 @@ using Wharf.Api.Models;
 
 namespace Wharf.Api.Tests;
 
-public class ClusterEndpointTests : ApiTestBase
+public class SupervisorEndpointTests : ApiTestBase
 {
     /// <summary>
     /// Connects the tests to the shared application fixture and per-test reset lifecycle.
     /// </summary>
-    public ClusterEndpointTests(WharfWebApplicationFactory factory)
+    public SupervisorEndpointTests(WharfWebApplicationFactory factory)
         : base(factory)
     {
     }
@@ -18,7 +18,7 @@ public class ClusterEndpointTests : ApiTestBase
     /// Verifies that an unhealthy probe is reported in an HTTP 200 response.
     /// </summary>
     [Fact]
-    public async Task UnhealthyClusterReturnsUnhealthyAsync()
+    public async Task UnhealthySupervisorReturnsUnhealthy()
     {
         Factory.ClusterAccess.Healthy = false;
 
@@ -36,7 +36,7 @@ public class ClusterEndpointTests : ApiTestBase
     /// Verifies that a healthy probe is reported in an HTTP 200 response.
     /// </summary>
     [Fact]
-    public async Task HealthyClusterReturnsHealthyAsync()
+    public async Task HealthySupervisorReturnsHealthy()
     {
         Factory.ClusterAccess.Healthy = true;
 
