@@ -5,15 +5,11 @@ using Wharf.Api.Models;
 
 namespace Wharf.Api.Tests;
 
-public class ClusterEndpointTests : IClassFixture<WharfWebApplicationFactory> 
+public class ClusterEndpointTests : ApiTestBase
 {
-    private readonly WharfWebApplicationFactory _factory;
-    private readonly HttpClient _client;
-
     public ClusterEndpointTests(WharfWebApplicationFactory factory) 
+        : base(factory)
     {
-        _factory = factory;
-        _client = factory.CreateClient();
     }
 
     [Fact]
