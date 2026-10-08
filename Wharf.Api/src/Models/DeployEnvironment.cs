@@ -33,32 +33,40 @@ public sealed class DeployEnvironment
 
     public required string Name { get; set; }
 
-    public string? HarborUrl { get; set; } = null;
+    public string? HarborUrl { get; set; }
 
-    public void ApplyPatch(
-        JsonObject updates
-    )
+    /// <summary>
+    /// Applies case-insensitive property updates, ignoring unknown properties and the database identifier.
+    /// </summary>
+    /// <remarks>
+    /// Explicit JSON nulls are assigned to properties; omitted properties retain their values.
+    /// Values are deserialized to each property's declared type, and conversion errors propagate to the caller.
+    /// </remarks>
+    public void ApplyPatch(JsonObject updates)
     {
         var properties = typeof(DeployEnvironment)
             .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.CanWrite)
+            .Where(property => property.CanWrite)
             .ToDictionary(
-                p => p.Name,
-                p => p,
-                StringComparer.OrdinalIgnoreCase
-            );
+                property => property.Name,
+                property => property,
+                StringComparer.OrdinalIgnoreCase);
 
-        foreach (var (name, value) in updates)
+        foreach (var (propertyName, value) in updates)
         {
-            if (!properties.TryGetValue(name, out var property))
+            if (!properties.TryGetValue(propertyName, out var property))
+            {
                 continue;
+            }
 
-            if (property.Name == nameof(DeployEnvironment.Id))
+            if (property.Name == nameof(Id))
+            {
                 continue;
+            }
 
-            var converted = value?.Deserialize(property.PropertyType);
+            var convertedValue = value?.Deserialize(property.PropertyType);
 
-            property.SetValue(this, converted);
+            property.SetValue(this, convertedValue);
         }
     }
 }

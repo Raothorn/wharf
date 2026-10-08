@@ -2,20 +2,26 @@ using Wharf.Api.K8s;
 
 namespace Wharf.Api.Endpoints;
 
-public static class ClusterEndpoints
+public static class SupervisorEndpoints
 {
-    public static IEndpointRouteBuilder MapClusterEndpoints(this IEndpointRouteBuilder app)
+    /// <summary>
+    /// Registers the Supervisor health route for a Kubernetes context.
+    /// </summary>
+    public static IEndpointRouteBuilder MapSupervisorEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/clusters/{clusterCtx}/health", GetSupervisorHealth);
+        app.MapGet("/clusters/{clusterContext}/health", GetSupervisorHealthAsync);
         return app;
     }
 
-    private static async Task<IResult> GetSupervisorHealth(
-        string clusterCtx,
+    /// <summary>
+    /// Returns HTTP 200 with the Supervisor probe result, including an unhealthy result.
+    /// </summary>
+    private static async Task<IResult> GetSupervisorHealthAsync(
+        string clusterContext,
         IClusterAccess clusterAccess,
         CancellationToken cancellationToken)
     {
-        var health = await clusterAccess.GetHealthAsync(clusterCtx, cancellationToken);
+        var health = await clusterAccess.GetHealthAsync(clusterContext, cancellationToken);
         return Results.Ok(health);
     }
 }

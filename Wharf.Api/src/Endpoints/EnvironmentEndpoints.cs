@@ -1,96 +1,112 @@
-using Wharf.Api.Models;
-using Wharf.Api.Data;
-using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Nodes;
+using Microsoft.EntityFrameworkCore;
+using Wharf.Api.Data;
+using Wharf.Api.Models;
 
 namespace Wharf.Api.Endpoints;
 
 public static class EnvironmentEndpoints
 {
+    /// <summary>
+    /// Registers the environment lookup, listing, creation, and patch routes.
+    /// </summary>
     public static IEndpointRouteBuilder MapEnvironmentEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/environments");
-        group.MapGet("/{environmentName}", GetEnvironment);
-        group.MapGet("/", ListEnvironments);
-        group.MapPost("/", CreateCustomEnvironment);
-        group.MapPatch("/{environmentName}", PatchEnvironment);
+        group.MapGet("/{environmentName}", GetEnvironmentAsync);
+        group.MapGet("/", ListEnvironmentsAsync);
+        group.MapPost("/", CreateCustomEnvironmentAsync);
+        group.MapPatch("/{environmentName}", PatchEnvironmentAsync);
         return app;
     }
 
-    private static async Task<IResult> GetEnvironment(
+    /// <summary>
+    /// Returns the environment with the requested name, or HTTP 404 if it does not exist.
+    /// </summary>
+    private static async Task<IResult> GetEnvironmentAsync(
         string environmentName,
-        WharfDbContext db,
-        CancellationToken cancellationToken
-    )
-    {
-        var env = await db.Environments
-            .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.Name == environmentName, cancellationToken);
-
-        if (env is null)
-            return Results.NotFound();
-
-        return Results.Ok(env);
-    }
-
-    private static async Task<IResult> ListEnvironments(
-        WharfDbContext db,
-        CancellationToken cancellationToken
-    )
-    {
-        var envs = await db.Environments
-            .AsNoTracking()
-            .OrderBy(e => e.Id)
-            .ToListAsync(cancellationToken);
-
-        return Results.Ok(envs);
-    }
-
-    private static async Task<IResult> CreateCustomEnvironment(
-        CreateCustomEnvironmentRequest request,
-        WharfDbContext db,
+        WharfDbContext database,
         CancellationToken cancellationToken)
     {
-        var exists = await db.Environments.AnyAsync(x => x.Name == request.Name);
+        var environment = await database.Environments
+            .AsNoTracking()
+            .SingleOrDefaultAsync(environment => environment.Name == environmentName, cancellationToken);
 
-        if (exists)
+        if (environment is null)
+        {
+            return Results.NotFound();
+        }
+
+        return Results.Ok(environment);
+    }
+
+    /// <summary>
+    /// Returns all environments ordered by their database identifiers.
+    /// </summary>
+    private static async Task<IResult> ListEnvironmentsAsync(
+        WharfDbContext database,
+        CancellationToken cancellationToken)
+    {
+        var environments = await database.Environments
+            .AsNoTracking()
+            .OrderBy(environment => environment.Id)
+            .ToListAsync(cancellationToken);
+
+        return Results.Ok(environments);
+    }
+
+    /// <summary>
+    /// Creates a named environment, returning HTTP 409 for an existing name
+    /// or HTTP 400 if saving fails.
+    /// </summary>
+    private static async Task<IResult> CreateCustomEnvironmentAsync(
+        CreateCustomEnvironmentRequest request,
+        WharfDbContext database,
+        CancellationToken cancellationToken)
+    {
+        var environmentExists = await database.Environments
+            .AnyAsync(environment => environment.Name == request.Name);
+
+        if (environmentExists)
         {
             return Results.Conflict(new { detail = "An environment with that name already exists" });
         }
 
         var environment = request.ToEntity();
-        db.Environments.Add(environment);
+        database.Environments.Add(environment);
 
         try
         {
-            await db.SaveChangesAsync(cancellationToken);
+            await database.SaveChangesAsync(cancellationToken);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Results.BadRequest(new { detail = ex.ToString() });
+            return Results.BadRequest(new { detail = exception.ToString() });
         }
 
         return Results.Json(environment, statusCode: StatusCodes.Status201Created);
     }
 
-    // Method to patch an environment with any changes, indexed by Namme
-    private static async Task<IResult> PatchEnvironment(
+    /// <summary>
+    /// Applies supplied property values to a named environment, or returns HTTP 404 if absent.
+    /// </summary>
+    private static async Task<IResult> PatchEnvironmentAsync(
         string environmentName,
         JsonObject request,
-        WharfDbContext db,
-        CancellationToken cancellationToken
-    )
+        WharfDbContext database,
+        CancellationToken cancellationToken)
     {
-        var env = await db.Environments
-            .SingleOrDefaultAsync(x => x.Name == environmentName, cancellationToken);
+        var environment = await database.Environments
+            .SingleOrDefaultAsync(environment => environment.Name == environmentName, cancellationToken);
 
-        if (env is null)
+        if (environment is null)
+        {
             return Results.NotFound();
+        }
 
-        env.ApplyPatch(request);
+        environment.ApplyPatch(request);
+        await database.SaveChangesAsync(cancellationToken);
 
-        await db.SaveChangesAsync(cancellationToken);
-
-        return Results.Ok(env);
+        return Results.Ok(environment);
     }
 }
